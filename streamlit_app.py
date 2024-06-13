@@ -19,5 +19,5 @@ for d in df:
     st.write(df)
 
 for i in range(len(df)):
-    st.write(df[i])
+
     st.write(i)

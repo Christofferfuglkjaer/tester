@@ -14,4 +14,7 @@ st.title('🤖 ML Model Building')
 uploaded_file = st.file_uploader("Upload a txt file", type=["txt"])
 if uploaded_file is not None:
     df = pd.read_fwf(uploaded_file)
-st.write(df)
+
+for i in df:
+    st.write(df)
+    st.write(i)

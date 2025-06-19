@@ -1,4 +1,4 @@
-st-gsheets-connection==0.1.0
+st-gsheets-connection
 streamlit==1.40.1
 pandas
 matplotlib

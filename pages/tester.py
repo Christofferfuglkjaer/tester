@@ -24,4 +24,4 @@ def load_data(url, sheet_name="Ark1"):
     df = pd.DataFrame(sh.worksheet(sheet_name).get_all_records())
     return df
 
-df = load_data(st.secrets["gcp_service_account"]["spreadsheet_url"], sheet_name="Ark1")
+df = load_data(st.secrets["gcp_service_account"]["spreadsheet"], sheet_name="Ark1")

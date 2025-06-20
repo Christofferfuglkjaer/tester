@@ -1,71 +1,65 @@
 import streamlit as st
-import datetime as dt
-st.session_state.pull_ups = []
-st.session_state.rows = []
-st.session_state.reps = []
-st.session_state.pull_ups_reps = []
-# Initialize workout data in session state
-if "workout_data" not in st.session_state:
-    st.session_state.workout_data = [[] for _ in range(5)]  # Adjust number of lists as needed
+import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
-# Page title
+# ---- Google Sheets Setup ----
+scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+skey = st.secrets["gcp_service_account"]
+credentials = Credentials.from_service_account_info(skey, scopes=scopes)
+client = gspread.authorize(credentials)
+
+# ---- Load Sheet ----
+url = st.secrets["gcp_service_account"]["spreadsheet"]
+sheet_name = "ryg"
+sheet = client.open_by_url(url).worksheet(sheet_name)
+
+# ---- Load Data into DataFrame ----
+@st.cache_data(ttl=600)
+def load_data():
+    return pd.DataFrame(sheet.get_all_records())
+
+df = load_data()
+st.dataframe(df)
+
+# ---- Tabs ----
 ryg, bryst, random, arme = st.tabs(["Ryg", "Bryst", "Random", "Arme"])
 
-# Ryg tab content
 with ryg:
+    st.subheader("Current Data")
+    # ---- Add Rows Input ----
+    st.markdown("### Add Rows")
+    col1, col2, col3 = st.columns([3, 3, 1])
+    with col1:
+        rows = st.number_input("Rows", min_value=0, value=0, key="rows_input")
+    with col2:
+        reps = st.number_input("Reps", min_value=0, value=0, key="reps_input")
+    with col3:
+        if st.button("Submit Rows", key="rows_submit"):
+            rows_val = rows * reps
+            new_row = [
+                datetime.now().strftime("%Y-%m-%d"),
+                None,
+                rows_val
+            ]
+            sheet.append_row(new_row)
+            st.success("Row added! Please refresh to see it.")
 
-    # First row: Rows
-    left, middle, right = st.columns([3, 3, 1],)
-    with left:
-        rows = st.text_input("Rows", value="", key="rows_input")
-    with middle:
-        reps = st.text_input("Reps", value="", key="reps_input")
-    with right:
-        st.markdown("<br>", unsafe_allow_html=True)  # Push button down to align with inputs
-        if st.button("Submit", key="ryg_submit"):
-            # Store the input data in the workout_data dictionary
-            st.session_state.workout_data[2].append(dt.datetime.now().strftime("%Y-%m-%d"))
-
-            st.session_state.workout_data[3].append(int(rows)*int(reps))
-            st.success("Data submitted successfully!")
-
-    # Second row: Pull ups
-    left2, middle2, right2 = st.columns([3, 3, 1])
-    with left2:
-        pull_ups = st.text_input("Pull ups", value="", key="pull_ups_input")
-    with middle2:
-        pull_ups_reps = st.text_input("Reps", value="", key="pull_ups_reps_input")
-    with right2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Submit", key="pull_ups_submit",use_container_width=True):
-            # Store the input data in the workout_data dictionary
-            st.session_state.workout_data[0].append(dt.datetime.now().strftime("%Y-%m-%d"))
-            st.session_state.workout_data[1].append(pull_ups_reps*pull_ups)
-            st.success("Data submitted successfully!")
-    
-    st.write("Workout Data:", st.session_state.workout_data)
-    st.write(st.session_state.workout_data[0])
-    
-
-# # Bryst tab content
-# with bryst:
-
-#     left.text_input("Rows", value=None, key="bryst_rows_input")
-#     middel.text_input("reps", value=None, key="bryst_reps_input")
-#     if st.button("Submit", key="bryst_submit"):
-#         st.write("Data submitted successfully!")
-
-# # Random tab content
-# with random:
-#     left.text_input("Rows", value=None, key="random_rows_input")
-#     middel.text_input("reps", value=None, key="random_reps_input")
-#     if right.button("Submit", key="random_submit"):
-#         st.write("Data submitted successfully!")
-
-
-# # Arme tab content
-# with arme:
-#     left.text_input("Rows", value=None, key="arme_rows_input")
-#     middel.text_input("reps", value=None, key="arme_reps_input")
-#     if st.button("Submit", key="arme_submit"):
-#         st.write("Data submitted successfully!")
+    # ---- Add Pull Ups Input ----
+    st.markdown("### Add Pull Ups")
+    col4, col5, col6 = st.columns([3, 3, 1])
+    with col4:
+        pull_ups = st.number_input("Pull Ups", min_value=0, value=0, key="pull_ups_input")
+    with col5:
+        pull_ups_reps = st.number_input("Reps", min_value=0, value=0, key="pull_ups_reps_input")
+    with col6:
+        if st.button("Submit Pull Ups", key="pull_ups_submit"):
+            pull_ups_val = pull_ups * pull_ups_reps
+            new_row = [
+                datetime.now().strftime("%Y-%m-%d"),
+                pull_ups_val,
+                None
+            ]
+            sheet.append_row(new_row)
+            st.success("Pull ups added! Please refresh to see it.")

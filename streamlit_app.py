@@ -16,7 +16,7 @@ sheet_name = "ryg"
 sheet = client.open_by_url(url).worksheet(sheet_name)
 
 # ---- Load Data into DataFrame ----
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=6)
 def load_data():
     return pd.DataFrame(sheet.get_all_records())
 
@@ -40,7 +40,7 @@ with ryg:
             rows_val = rows * reps
             new_row = [
                 datetime.now().strftime("%Y-%m-%d"),
-                None,
+                0,
                 rows_val
             ]
             sheet.append_row(new_row)
@@ -59,7 +59,7 @@ with ryg:
             new_row = [
                 datetime.now().strftime("%Y-%m-%d"),
                 pull_ups_val,
-                None
+                0
             ]
             sheet.append_row(new_row)
             st.success("Pull ups added! Please refresh to see it.")
